@@ -11,7 +11,8 @@ import {
 
 // configure environment params
 require("dotenv").config();
-Object.assign(process.env, require("../config.json"));
+// this adds an object to process.env (ROLE_IDS). it's illegal, but it works.
+Object.assign(process, require("../config.json"));
 
 const bot = new Bot(process.env.DISCORD_TOKEN as string);
 bot.listen();
