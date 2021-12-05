@@ -7,6 +7,7 @@ const pickCommand: Command = {
   handler: async (client, interaction) => {
     const member = interaction.member as GuildMember;
     const voiceState: VoiceState = member.voice;
+    console.log(voiceState);
 
     const voiceChannel = voiceState.channel;
 
@@ -20,13 +21,12 @@ const pickCommand: Command = {
     }
 
     const members = Array.from(voiceChannel.members);
+
     // get random item from `members`
-    const randomMember = members[Math.floor(Math.random() * members.length)];
+    // array members is a list in format [id, GuildMember]
+    const randomMember = members[Math.floor(Math.random() * members.length)][1];
 
-    console.log(randomMember);
-
-    console.log("hi");
-    await interaction.reply("Pong!");
+    await interaction.reply(`Hey <@${randomMember.id}>, you're up!`);
   },
 };
 
