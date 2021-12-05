@@ -8,7 +8,7 @@ import {
   SelectMenuInteraction,
   MessageButton,
 } from "discord.js";
-import { Module, Command, EventHandler } from "../interfaces";
+import { Module, Command, Event } from "../interfaces";
 
 import SparkMD5 from "spark-md5";
 
@@ -23,11 +23,11 @@ const submitMockResults: Command = {
       new MessageSelectMenu()
         .setCustomId("provider")
         .setPlaceholder("Choose a provider...")
-        .addOptions([
-          { label: "Medify", value: "Medify" },
-          { label: "Medentry", value: "Medentry" },
-          { label: "Official Mocks", value: "Official Mocks" },
-        ])
+        .addOptions(
+          ["Medify", "Medentry", "Official Mocks"].map((x) => {
+            return { label: x, value: x };
+          })
+        )
     );
 
     await interaction.reply({
@@ -41,7 +41,7 @@ const submitMockResults: Command = {
 const interactionChangedEvent: Event = {
   name: "submission-interaction-event",
   eventType: "interactionCreate",
-  handler: async (client, genericInteraction: Interaction) => {
+  handler: async (client: any, genericInteraction: Interaction) => {
     // type guard
     if (!genericInteraction.isMessageComponent()) {
       return;
@@ -52,16 +52,19 @@ const interactionChangedEvent: Event = {
 
     const selectRow = new MessageActionRow().addComponents(
       new MessageSelectMenu()
-        .setDisabled(true)
-        .setCustomId("disabled-provider")
-        .setPlaceholder(provider)
-        .addOptions([{ label: provider, value: provider }])
+        .setCustomId("provider")
+        .setPlaceholder("Choose a provider...")
+        .addOptions(
+          ["Medify", "Medentry", "Official Mocks"].map((x) => {
+            return { label: x, value: x, default: provider == x };
+          })
+        )
     );
     const URLRow = new MessageActionRow().addComponents(
       new MessageButton()
         .setURL("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
         .setStyle("LINK")
-        .setLabel("Link to submit results")
+        .setLabel(`Link to submit ${provider} results`)
         .setEmoji("📎")
     );
 
