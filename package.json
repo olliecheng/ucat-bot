@@ -1,0 +1,27 @@
+{
+  "name": "ucat-bot",
+  "version": "1.0.0",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^16.10.3",
+    "@types/spark-md5": "^3.0.2",
+    "eslint": "^8.0.0",
+    "eslint-config-prettier": "^8.3.0",
+    "prettier": "^2.4.1",
+    "ts-node": "^10.2.1",
+    "typescript": "^4.5.2"
+  },
+  "scripts": {
+    "bot": "ts-node --project tsconfig.json src/index.ts",
+    "format": "prettier --write src/",
+    "register-commands": "ts-node --project tsconfig.json src/register-commands.ts"
+  },
+  "dependencies": {
+    "@discordjs/builders": "^0.6.0",
+    "@discordjs/rest": "^0.1.0-canary.0",
+    "discord-api-types": "^0.23.1",
+    "discord.js": "^13.2.0",
+    "dotenv": "^10.0.0",
+    "spark-md5": "^3.0.2"
+  }
+}
