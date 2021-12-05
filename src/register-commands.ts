@@ -2,11 +2,11 @@ const { SlashCommandBuilder } = require("@discordjs/builders");
 const { REST } = require("@discordjs/rest");
 const { Routes } = require("discord-api-types/v9");
 
+import { loadModules } from "./modules";
+
 // configure environment params
 require("dotenv").config();
-Object.assign(process.env, require("../config.json"))
-
-import { loadModules } from "./modules";
+Object.assign(process.env, require("../config.json"));
 
 (async () => {
   const modules = await loadModules();
@@ -20,10 +20,8 @@ import { loadModules } from "./modules";
     )
     .map((command) => command.toJSON());
 
-
-
   const rest = new REST({ version: "9" }).setToken(process.env.DISCORD_TOKEN);
-  console.log("Determined the commands:", commands)
+  console.log("Determined the commands:", commands);
 
   await rest.put(
     Routes.applicationGuildCommands(
