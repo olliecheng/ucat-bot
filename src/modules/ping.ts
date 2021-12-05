@@ -5,7 +5,6 @@ const pingCommand: Command = {
   name: "ping",
   description: "Replies with pong!",
   handler: async (client, interaction) => {
-    console.log("hi");
     await interaction.reply("Pong!");
   },
 };

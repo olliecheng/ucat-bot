@@ -7,7 +7,6 @@ const pickCommand: Command = {
   handler: async (client, interaction) => {
     const member = interaction.member as GuildMember;
     const voiceState: VoiceState = member.voice;
-    console.log(voiceState);
 
     const voiceChannel = voiceState.channel;
 

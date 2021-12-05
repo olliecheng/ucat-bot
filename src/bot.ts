@@ -35,7 +35,6 @@ export class Bot {
 
     this.modules = await loadModules();
     console.log("Loaded modules:", Array.from(this.modules.modules.keys()));
-    console.log(this.modules);
 
     // When called as an event, this doesn't take on the class attributes
     // We bind the value of the interactionListener's 'this' to the class
@@ -54,12 +53,9 @@ export class Bot {
 
     if (genericInteraction.isCommand()) {
       const interaction = genericInteraction as BaseCommandInteraction;
-      console.log(interaction.commandName);
       let command = modules.commands.get(interaction.commandName);
 
       if (command) {
-        console.log(interaction.commandName);
-
         // type cast needed because TS doesn't recognise that command must be defined
         await (command as Command).handler(this.client, interaction);
         return;

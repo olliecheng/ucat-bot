@@ -74,7 +74,6 @@ const interactionChangedEvent: Event = {
     // get user country from roles
     const roles = Array.from(rolesManager.cache);
     const roleIDs = roles.map((x) => x[0].toString());
-    console.log(roleIDs);
 
     let region: Region | undefined = undefined;
     const ROLE_IDS = (process as any).ROLE_IDS as unknown as {
