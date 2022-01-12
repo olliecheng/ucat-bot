@@ -38,22 +38,29 @@ const memberUpdatedEvent: Event = {
       .substring(0, 32); // just in case? sanity check ig
 
     // check if user has tutor role
-    if (newMember.roles.highest.id === process.env.TUTOR_ROLE) {
-      // will not fire for admins who have a higher role
-      const TUTOR_EMOJI = "💯";
-      if (newMember.nickname?.endsWith(TUTOR_EMOJI)) {
-        return;
-      }
+    let nameChanged = false;
+    // @ts-ignore
+    for (let [role, emojiUntyped] of Object.entries(global.config.ROLES)) {
+      let emoji = emojiUntyped as string;
+      if (newMember.roles.cache.some((r) => r.id == role)) {
+        // will not fire for admins who have a higher role
+        nameChanged = true;
 
-      let newNickname =
-        (newMember.nickname || newMember.user.username) + " " + TUTOR_EMOJI;
-      try {
-        await newMember.setNickname(newNickname);
-      } catch (error) {
-        console.log(`Could not set tutor emoji ${error}`);
+        if (newMember.nickname?.includes(emoji)) {
+          continue;
+        }
+
+        let newNickname =
+          (newMember.nickname || newMember.user.username) + " " + emoji;
+        try {
+          await newMember.setNickname(newNickname);
+        } catch (error) {
+          console.log(`Could not set tutor emoji ${error}`);
+        }
       }
-      return;
     }
+
+    if (nameChanged) return;
 
     if (sanitisedNickname !== unsanitisedNickname) {
       // message user
@@ -68,7 +75,8 @@ const memberUpdatedEvent: Event = {
       } catch {
         // if DMs are closed
         let logChannel = (await newMember.guild.channels.fetch(
-          process.env.SPAM_CHANNEL_ID!
+          // @ts-ignore
+          global.config.SPAM_CHANNEL_ID
         )) as TextChannel;
 
         logChannel.send(`Hi <@${newMember.id}>, ` + errMsg);

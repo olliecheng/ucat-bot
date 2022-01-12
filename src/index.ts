@@ -13,7 +13,11 @@ import {
 require("dotenv").config();
 // this adds an object to process.env (ROLE_IDS). it's illegal, but it works.
 // ROLE_IDS will be serialised
-Object.assign(process.env, require("../config.json"));
+
+// @ts-ignore // global.config typing is just grrrrr - see src/types/global.d.ts
+global.config = {};
+// @ts-ignore
+Object.assign(global.config, require("../config.json"));
 
 const bot = new Bot(process.env.DISCORD_TOKEN as string);
 bot.listen();
