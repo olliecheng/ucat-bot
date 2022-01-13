@@ -1,5 +1,6 @@
 // Require the necessary discord.js classes
 import { Bot } from "./bot";
+require("@cspotcode/source-map-support").install();
 
 import {
   Client,
@@ -15,9 +16,7 @@ require("dotenv").config();
 // ROLE_IDS will be serialised
 
 // @ts-ignore // global.config typing is just grrrrr - see src/types/global.d.ts
-global.config = {};
-// @ts-ignore
-Object.assign(global.config, require("../config.json"));
+global.config = require("../config.json");
 
 const bot = new Bot(process.env.DISCORD_TOKEN as string);
 bot.listen();

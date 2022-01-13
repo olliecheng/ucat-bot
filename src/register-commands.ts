@@ -6,17 +6,23 @@ import { loadModules } from "./modules";
 
 // configure environment params
 require("dotenv").config();
-Object.assign(process.env, require("../config.json"));
+// @ts-ignore
+global.config = require("../config.json");
 
 (async () => {
   const modules = await loadModules();
   console.log(modules);
 
   let commands = Array.from(modules.commands)
+    .filter(([name, command]) => !command.prevent_automatic_registration)
     .map(([name, command]) =>
+      // DOESN'T SUPPORT OPTIONS
       new SlashCommandBuilder()
         .setName(name)
         .setDescription(command.description)
+        .setDefaultPermission(
+          command.default_permission || command.default_permission === undefined
+        )
     )
     .map((command) => command.toJSON());
 
@@ -26,7 +32,8 @@ Object.assign(process.env, require("../config.json"));
   await rest.put(
     Routes.applicationGuildCommands(
       process.env.CLIENT_ID,
-      process.env.UCAT_SERVER_ID
+      // @ts-ignore
+      global.config.SERVER_ID
     ),
     { body: commands }
   );

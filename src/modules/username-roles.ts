@@ -9,12 +9,14 @@ import {
   MessageButton,
   GuildInviteManager,
   GuildMember,
+  Permissions,
   TextChannel,
 } from "discord.js";
 import { Module, Command, Event } from "../interfaces";
 import emojiRegex from "emoji-regex";
 
 import SparkMD5 from "spark-md5";
+import { MembershipScreeningFieldType } from "discord-api-types";
 
 enum Region {
   UK = "UK",
@@ -29,6 +31,10 @@ const memberUpdatedEvent: Event = {
     oldMember: GuildMember,
     newMember: GuildMember
   ) => {
+    if (newMember.permissions.has(Permissions.FLAGS.ADMINISTRATOR)) {
+      console.log("Role edit for administrator: ignore");
+      return;
+    }
     let oldNickname = oldMember.nickname || oldMember.user.username;
     let unsanitisedNickname = newMember.nickname || newMember.user.username;
     console.log(`${oldNickname} → ${unsanitisedNickname}`);

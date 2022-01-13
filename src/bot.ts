@@ -3,6 +3,7 @@ import {
   Intents,
   Interaction,
   BaseCommandInteraction,
+  CommandInteractionOptionResolver,
 } from "discord.js";
 import { Command, Event, Module } from "./interfaces";
 
@@ -55,7 +56,14 @@ export class Bot {
 
     if (genericInteraction.isCommand()) {
       const interaction = genericInteraction as BaseCommandInteraction;
-      let command = modules.commands.get(interaction.commandName);
+      let command =
+        modules.commands.get(interaction.commandName) ||
+        modules.commands.get(
+          (
+            interaction.options as CommandInteractionOptionResolver
+          ).getSubcommand()
+        );
+      console.log(command);
 
       if (command) {
         // type cast needed because TS doesn't recognise that command must be defined

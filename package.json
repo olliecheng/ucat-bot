@@ -17,6 +17,7 @@
     "register-commands": "ts-node --project tsconfig.json src/register-commands.ts"
   },
   "dependencies": {
+    "@cspotcode/source-map-support": "^0.7.0",
     "@discordjs/builders": "^0.6.0",
     "@discordjs/rest": "^0.1.0-canary.0",
     "discord-api-types": "^0.23.1",

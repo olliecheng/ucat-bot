@@ -1,4 +1,10 @@
-import { Message, Client, BaseCommandInteraction } from "discord.js";
+import {
+  Message,
+  Client,
+  BaseCommandInteraction,
+  ApplicationCommandOptionData,
+  BaseApplicationCommandOptionsData,
+} from "discord.js";
 
 export type CommandHandler = (
   client: Client,
@@ -11,6 +17,9 @@ export interface Command {
   name: string; // command name
   description: string;
   category?: string;
+  default_permission?: boolean;
+  prevent_automatic_registration?: boolean;
+  options?: Array<ApplicationCommandOptionData>;
   handler: CommandHandler;
 }
 
