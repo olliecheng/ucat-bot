@@ -1,6 +1,6 @@
 // Require the necessary discord.js classes
 import { Bot } from "./bot";
-require("@cspotcode/source-map-support").install();
+require("source-map-support").install();
 
 import {
   Client,
