@@ -64,10 +64,11 @@ const createRoleSelectorCommand: Command = {
     CurrentState.multipleRoles = interaction.options.get("multirole")
       ?.value as boolean;
 
-    await updateAdminSlashCommand(client, [
-      addRoleToSelectionCommand,
-      cancelRoleSelectorCommand,
-    ]);
+    await updateAdminSlashCommand(
+      client,
+      [addRoleToSelectionCommand, cancelRoleSelectorCommand],
+      interaction.guildId
+    );
 
     let promptChannel = interaction.channel;
     // promptChannel?.send({
@@ -86,7 +87,11 @@ const cancelRoleSelectorCommand: Command = {
       ephemeral: true,
     });
 
-    await updateAdminSlashCommand(client, [createRoleSelectorCommand]);
+    await updateAdminSlashCommand(
+      client,
+      [createRoleSelectorCommand],
+      interaction.guildId
+    );
 
     // Reset state and all selected roles
     Object.assign(CurrentState, DefaultCurrentState);
@@ -165,12 +170,16 @@ const addRoleToSelectionCommand: Command = {
     await interaction.reply({ embeds: [roleAddedEmbed], ephemeral: true });
 
     if (CurrentState.roles.length === 1) {
-      await updateAdminSlashCommand(client, [
-        addRoleToSelectionCommand,
-        finaliseRoleSelectorCommand,
-        addDividerCommand,
-        cancelRoleSelectorCommand,
-      ]);
+      await updateAdminSlashCommand(
+        client,
+        [
+          addRoleToSelectionCommand,
+          finaliseRoleSelectorCommand,
+          addDividerCommand,
+          cancelRoleSelectorCommand,
+        ],
+        interaction.guildId
+      );
     }
   },
 };
@@ -352,9 +361,12 @@ const interactionClickedEvent: Event = {
 
 async function updateAdminSlashCommand(
   client: Client,
-  commands: Array<Command>
+  commands: Array<Command>,
+  id?: string | null
 ) {
-  for (let guildID of getServers()) {
+  let serversList = id ? [id] : getServers();
+
+  for (let guildID of serversList) {
     let guild = client.guilds.cache.get(guildID);
 
     let payload = {
