@@ -6,8 +6,8 @@ import { loadModules } from "./modules";
 
 // configure environment params
 require("dotenv").config();
-// @ts-ignore
-global.config = require("../config.json");
+let config = require("../config.json");
+import { getServers } from "./config";
 
 (async () => {
   const modules = await loadModules();
@@ -29,13 +29,11 @@ global.config = require("../config.json");
   const rest = new REST({ version: "9" }).setToken(process.env.DISCORD_TOKEN);
   console.log("Determined the commands:", commands);
 
-  await rest.put(
-    Routes.applicationGuildCommands(
-      process.env.CLIENT_ID,
-      // @ts-ignore
-      global.config.SERVER_ID
-    ),
-    { body: commands }
-  );
+  for (let id of getServers()) {
+    console.log(`Updating for server with ID ${id}`);
+    await rest.put(Routes.applicationGuildCommands(process.env.CLIENT_ID, id), {
+      body: commands,
+    });
+  }
   console.log("Successfully registered application commands.");
 })();

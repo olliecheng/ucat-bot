@@ -12,9 +12,11 @@ import {
   MessageButton,
   MessageButtonStyle,
   GuildMember,
+  MessageActionRowComponent,
 } from "discord.js";
 import { create } from "domain";
 import { Module, Command, Event } from "../interfaces";
+import { loadConfig, getServers } from "../config";
 
 const DefaultCurrentState = {
   title: "",
@@ -133,6 +135,15 @@ const addRoleToSelectionCommand: Command = {
     let role = (await interaction.guild?.roles.fetch(roleID)) as Role;
     let colour = role.color;
 
+    if (CurrentState.roles.some((x) => x[1] === roleID)) {
+      // Role already exists - can't select again
+      await interaction.reply({
+        content: "Cannot select a role which has already been added!",
+        ephemeral: true,
+      });
+      return;
+    }
+
     CurrentState.roles = [
       ...CurrentState.roles,
       [
@@ -149,8 +160,9 @@ const addRoleToSelectionCommand: Command = {
       .setDescription(
         "Current role choices:\n" +
           CurrentState.roles.map((x) => `• ${x[0]}`).join("\n")
-      );
-    interaction.reply({ embeds: [roleAddedEmbed], ephemeral: true });
+      )
+      .setFooter("When you're done, type /admin finish");
+    await interaction.reply({ embeds: [roleAddedEmbed], ephemeral: true });
 
     if (CurrentState.roles.length === 1) {
       await updateAdminSlashCommand(client, [
@@ -243,22 +255,97 @@ const interactionClickedEvent: Event = {
   eventType: "interactionCreate",
   handler: async (client: any, genericInteraction: Interaction) => {
     if (!genericInteraction.isButton()) return;
-    let interaction = genericInteraction as ButtonInteraction;
-    console.log(interaction);
 
+    let interaction = genericInteraction as ButtonInteraction;
     let customId = interaction.customId;
+
+    if (!(customId.startsWith("MULTI") || customId.startsWith("SINGL"))) {
+      // not interactions from this command
+      return;
+    }
+
     let multipleRoles = customId.startsWith("MULTI");
     let roleId = customId.slice(5);
 
+    let guildRoles = interaction.guild!.roles;
+    let roleName = (await guildRoles.fetch(roleId))?.name;
+
     let memberRoles = (interaction.member as GuildMember).roles;
+    let memberRoleIDs = Array.from(memberRoles.cache.keys());
     console.log("Keys", memberRoles.cache.keys());
 
     if (multipleRoles) {
-      if (Array.from(memberRoles.cache.keys()).includes(roleId)) {
+      if (memberRoleIDs.includes(roleId)) {
+        console.log(roleId);
         await memberRoles.remove(roleId);
+        await interaction.reply({
+          content: `The role ${roleName} has been removed.`,
+          ephemeral: true,
+        });
       } else {
+        console.log("RDSFSD", roleId);
         await memberRoles.add(roleId);
+        await interaction.reply({
+          content: `The role ${roleName} has been added.`,
+          ephemeral: true,
+        });
       }
+    } else {
+      let optionRoles = interaction.message
+        .components!.map((row) => {
+          return row.components.map(
+            (component) =>
+              (component as MessageActionRowComponent).customId!.slice(5) // .split(5) removes the MULTI- prefix
+          );
+        })
+        .reduce((prev, curr) => [...prev, ...curr], []);
+
+      // user wants to remove the role
+      if (memberRoleIDs.includes(roleId)) {
+        await memberRoles.remove(roleId);
+        await interaction.reply({
+          content: `Removed role ${roleName}.`,
+          ephemeral: true,
+        });
+        return;
+      }
+
+      // there should only be one of these roles at a time but just in case...
+      let rolesRemoved: string[] = [];
+      for (let optionRole of optionRoles) {
+        if (memberRoleIDs.includes(optionRole)) {
+          rolesRemoved = [
+            ...rolesRemoved,
+            (await guildRoles.fetch(optionRole))!.name,
+          ];
+          await memberRoles.remove(optionRole);
+        }
+      }
+
+      await memberRoles.add(roleId);
+
+      let removedMessage: string;
+      switch (rolesRemoved.length) {
+        case 0: {
+          removedMessage = "The";
+          break;
+        }
+        case 1: {
+          removedMessage = `The role ${rolesRemoved[0]} has been removed and the`;
+          break;
+        }
+        default: {
+          removedMessage = `The roles ${rolesRemoved.join(
+            ", "
+          )} have been removed and the`;
+          break;
+        }
+      }
+
+      await interaction.reply({
+        content: `${removedMessage} role ${roleName} has been added.`,
+        ephemeral: true,
+      });
     }
   },
 };
@@ -267,42 +354,41 @@ async function updateAdminSlashCommand(
   client: Client,
   commands: Array<Command>
 ) {
-  // @ts-ignore
-  let guild = client.guilds.cache.get(global.config.SERVER_ID);
+  for (let guildID of getServers()) {
+    let guild = client.guilds.cache.get(guildID);
 
-  let payload = {
-    name: "admin",
-    description: "Administrator only commands",
-    defaultPermission: false,
-    options: commands.map((commandHandler: Command) => {
+    let payload = {
+      name: "admin",
+      description: "Administrator only commands",
+      defaultPermission: false,
+      options: commands.map((commandHandler: Command) => {
+        return {
+          name: commandHandler.name,
+          description: commandHandler.description,
+          type: "SUB_COMMAND",
+          // @ts-ignore
+          options: commandHandler.options || [],
+        } as ApplicationCommandOptionData;
+      }),
+    };
+
+    let allCommands = await guild?.commands.fetch();
+    let command = allCommands?.find((x) => x.name == "admin");
+    if (command) {
+      command = await guild?.commands.edit(command.id, payload);
+    }
+    command = await guild?.commands.create(payload);
+
+    const permissions = loadConfig(guildID).MODERATOR_ROLE_IDS.map((roleID) => {
       return {
-        name: commandHandler.name,
-        description: commandHandler.description,
-        type: "SUB_COMMAND",
-        // @ts-ignore
-        options: commandHandler.options || [],
-      } as ApplicationCommandOptionData;
-    }),
-  };
-
-  let allCommands = await guild?.commands.fetch();
-  let command = allCommands?.find((x) => x.name == "admin");
-  if (command) {
-    command = await guild?.commands.edit(command.id, payload);
+        id: roleID,
+        type: "ROLE",
+        permission: true,
+      };
+    });
+    // @ts-ignore // why? wtf
+    await command?.permissions.set({ permissions });
   }
-  command = await guild?.commands.create(payload);
-
-  const permissions = [
-    {
-      // @ts-ignore
-      id: global.config.MODERATOR_ROLE_ID,
-      type: "ROLE",
-      permission: true,
-    },
-  ];
-
-  // @ts-ignore // why? wtf
-  await command?.permissions.set({ permissions });
 }
 
 const initialiseAdminCommand: Event = {

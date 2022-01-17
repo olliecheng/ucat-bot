@@ -14,6 +14,7 @@ import {
 } from "discord.js";
 import { Module, Command, Event } from "../interfaces";
 import emojiRegex from "emoji-regex";
+import { loadConfig } from "../config";
 
 import SparkMD5 from "spark-md5";
 import { MembershipScreeningFieldType } from "discord-api-types";
@@ -45,11 +46,11 @@ const memberUpdatedEvent: Event = {
 
     // check if user has tutor role
     let nameChanged = false;
-    // @ts-ignore
-    for (let [role, emojiUntyped] of Object.entries(global.config.ROLES)) {
+    for (let [role, emojiUntyped] of Object.entries(
+      loadConfig(newMember.guild.id).ROLES
+    )) {
       let emoji = emojiUntyped as string;
       if (newMember.roles.cache.some((r) => r.id == role)) {
-        // will not fire for admins who have a higher role
         nameChanged = true;
 
         if (newMember.nickname?.includes(emoji)) {
@@ -58,6 +59,7 @@ const memberUpdatedEvent: Event = {
 
         let newNickname =
           (newMember.nickname || newMember.user.username) + " " + emoji;
+        console.log("setting new nickname to", newNickname);
         try {
           await newMember.setNickname(newNickname);
         } catch (error) {
@@ -81,8 +83,7 @@ const memberUpdatedEvent: Event = {
       } catch {
         // if DMs are closed
         let logChannel = (await newMember.guild.channels.fetch(
-          // @ts-ignore
-          global.config.SPAM_CHANNEL_ID
+          loadConfig(newMember.guild.id).SPAM_CHANNEL_ID
         )) as TextChannel;
 
         logChannel.send(`Hi <@${newMember.id}>, ` + errMsg);

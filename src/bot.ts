@@ -67,7 +67,13 @@ export class Bot {
 
       if (command) {
         // type cast needed because TS doesn't recognise that command must be defined
-        await (command as Command).handler(this.client, interaction);
+        try {
+          await (command as Command).handler(this.client, interaction);
+        } catch (err) {
+          interaction.reply(
+            `There was an issue handling this request. Error: \`\`\`${err}\`\`\``
+          );
+        }
         return;
       }
     }

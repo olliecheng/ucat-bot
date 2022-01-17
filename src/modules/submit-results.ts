@@ -38,7 +38,7 @@ const submitMockResults: Command = {
   handler: async (client, interaction) => {
     const row = new MessageActionRow().addComponents(
       new MessageSelectMenu()
-        .setCustomId("provider")
+        .setCustomId("submit-provider")
         .setPlaceholder("Choose a provider...")
         .addOptions(
           ["Medify", "Medentry", "Official Mocks"].map((x) => {
@@ -61,6 +61,11 @@ const interactionChangedEvent: Event = {
   handler: async (client: any, genericInteraction: Interaction) => {
     // type guard
     if (!genericInteraction.isMessageComponent()) {
+      return;
+    }
+
+    if (!genericInteraction.customId.startsWith("submit")) {
+      // not a submission interaction event
       return;
     }
 
@@ -97,7 +102,7 @@ const interactionChangedEvent: Event = {
 
     const selectRow = new MessageActionRow().addComponents(
       new MessageSelectMenu()
-        .setCustomId("provider")
+        .setCustomId("submit-provider")
         .setPlaceholder("Choose a provider...")
         .addOptions(
           ["Medify", "Medentry", "Official Mocks"].map((x) => {
