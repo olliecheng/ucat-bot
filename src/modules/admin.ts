@@ -283,78 +283,86 @@ const interactionClickedEvent: Event = {
     let memberRoleIDs = Array.from(memberRoles.cache.keys());
     console.log("Keys", memberRoles.cache.keys());
 
-    if (multipleRoles) {
-      if (memberRoleIDs.includes(roleId)) {
-        console.log(roleId);
-        await memberRoles.remove(roleId);
-        await interaction.reply({
-          content: `The role ${roleName} has been removed.`,
-          ephemeral: true,
-        });
+    try {
+      if (multipleRoles) {
+        if (memberRoleIDs.includes(roleId)) {
+          console.log(roleId);
+          await memberRoles.remove(roleId);
+          await interaction.reply({
+            content: `The role ${roleName} has been removed.`,
+            ephemeral: true,
+          });
+        } else {
+          console.log("RDSFSD", roleId);
+          await memberRoles.add(roleId);
+          await interaction.reply({
+            content: `The role ${roleName} has been added.`,
+            ephemeral: true,
+          });
+        }
       } else {
-        console.log("RDSFSD", roleId);
+        let optionRoles = interaction.message
+          .components!.map((row) => {
+            return row.components.map(
+              (component) =>
+                (component as MessageActionRowComponent).customId!.slice(5) // .split(5) removes the MULTI- prefix
+            );
+          })
+          .reduce((prev, curr) => [...prev, ...curr], []);
+
+        // user wants to remove the role
+        if (memberRoleIDs.includes(roleId)) {
+          await memberRoles.remove(roleId);
+          await interaction.reply({
+            content: `Removed role ${roleName}.`,
+            ephemeral: true,
+          });
+          return;
+        }
+
+        // there should only be one of these roles at a time but just in case...
+        let rolesRemoved: string[] = [];
+        for (let optionRole of optionRoles) {
+          if (memberRoleIDs.includes(optionRole)) {
+            rolesRemoved = [
+              ...rolesRemoved,
+              (await guildRoles.fetch(optionRole))!.name,
+            ];
+            await memberRoles.remove(optionRole);
+          }
+        }
+
         await memberRoles.add(roleId);
+
+        let removedMessage: string;
+        switch (rolesRemoved.length) {
+          case 0: {
+            removedMessage = "The";
+            break;
+          }
+          case 1: {
+            removedMessage = `The role ${rolesRemoved[0]} has been removed and the`;
+            break;
+          }
+          default: {
+            removedMessage = `The roles ${rolesRemoved.join(
+              ", "
+            )} have been removed and the`;
+            break;
+          }
+        }
+
         await interaction.reply({
-          content: `The role ${roleName} has been added.`,
+          content: `${removedMessage} role ${roleName} has been added.`,
           ephemeral: true,
         });
       }
-    } else {
-      let optionRoles = interaction.message
-        .components!.map((row) => {
-          return row.components.map(
-            (component) =>
-              (component as MessageActionRowComponent).customId!.slice(5) // .split(5) removes the MULTI- prefix
-          );
-        })
-        .reduce((prev, curr) => [...prev, ...curr], []);
-
-      // user wants to remove the role
-      if (memberRoleIDs.includes(roleId)) {
-        await memberRoles.remove(roleId);
-        await interaction.reply({
-          content: `Removed role ${roleName}.`,
-          ephemeral: true,
-        });
-        return;
-      }
-
-      // there should only be one of these roles at a time but just in case...
-      let rolesRemoved: string[] = [];
-      for (let optionRole of optionRoles) {
-        if (memberRoleIDs.includes(optionRole)) {
-          rolesRemoved = [
-            ...rolesRemoved,
-            (await guildRoles.fetch(optionRole))!.name,
-          ];
-          await memberRoles.remove(optionRole);
-        }
-      }
-
-      await memberRoles.add(roleId);
-
-      let removedMessage: string;
-      switch (rolesRemoved.length) {
-        case 0: {
-          removedMessage = "The";
-          break;
-        }
-        case 1: {
-          removedMessage = `The role ${rolesRemoved[0]} has been removed and the`;
-          break;
-        }
-        default: {
-          removedMessage = `The roles ${rolesRemoved.join(
-            ", "
-          )} have been removed and the`;
-          break;
-        }
-      }
-
-      await interaction.reply({
-        content: `${removedMessage} role ${roleName} has been added.`,
-        ephemeral: true,
-      });
+    } catch (err) {
+      console.log(
+        `Could not edit roles for ${
+          (interaction.member as GuildMember).user.tag
+        } due to ${err}`
+      );
     }
   },
 };
