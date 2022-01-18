@@ -41,19 +41,11 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/ucatbot:latest
+          cache-from: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/ucatbot:buildcache
+          cache-to: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/ucatbot:buildcache,mode=max
           
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
-
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
-
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
-        run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
 
   deploy:
       runs-on: ubuntu-latest   
@@ -70,7 +62,7 @@ jobs:
             username: ${{ secrets.VPS_SSH_USERNAME }}
             password: ${{ secrets.VPS_SSH_PASSWORD }}
             # SSH port
-            port: 21
+            port: 22
             script: |
               echo "Pull new image"
               docker-compose -f /root/code/ucat-bot/docker-compose.yml pull
