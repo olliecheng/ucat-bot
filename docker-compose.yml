@@ -1,0 +1,13 @@
+# PRODUCTION
+
+version: "3.7"
+
+services:
+  node:
+    container_name: node
+    image: denosawr/ucatbot
+    restart: always
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
