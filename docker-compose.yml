@@ -4,7 +4,7 @@ version: "3.7"
 
 services:
   node:
-    container_name: node
+    container_name: ucat-bot
     image: denosawr/ucatbot
     restart: always
     ports:
