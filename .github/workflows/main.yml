@@ -6,7 +6,7 @@ name: CI to Docker Hub
 on:
   # Triggers the workflow on push or pull request events but only for the main branch
   push:
-    branches: [ release ]
+    branches: [ main ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch: 
@@ -68,8 +68,7 @@ jobs:
             host: ${{ secrets.VPS_SSH_HOST }}
             # VPS username
             username: ${{ secrets.VPS_SSH_USERNAME }}
-            # SSH key (copy it from your local machine)
-            key: ${{ secrets.VPS_SSH_SECRET }}
+            password: ${{ secrets.VPS_SSH_PASSWORD }}
             # SSH port
             port: 21
             script: |
