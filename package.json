@@ -1,6 +1,6 @@
 {
   "name": "ucat-bot",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^16.10.3",
