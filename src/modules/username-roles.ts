@@ -77,16 +77,47 @@ const memberUpdatedEvent: Event = {
         `However, emojis aren't allowed in user nicknames... ` +
         `Please change your username.`;
 
+      const originalDescription =
+        " I noticed that you recently changed your nickname to contain an emoji. However, emojis are reserved for tutor and professional roles.\n\nIn the meantime, I've replaced your nickname with a sanitised version; please change it to a non-emoji nickname when you have a chance. Thank you!";
+      let embed = {
+        type: "rich",
+        title: `Nickname change issue (r/UCAT Discord server)`,
+        description: "",
+        color: 0xa81335,
+        fields: [
+          {
+            name: `Original nickname`,
+            value: `\`${oldNickname}\``,
+            inline: true,
+          },
+          {
+            name: `New (invalid) nickname`,
+            value: `\`${unsanitisedNickname}\``,
+            inline: true,
+          },
+          {
+            name: `Your current (sanitised) nickname`,
+            value: `\`${sanitisedNickname}\``,
+          },
+        ],
+        footer: {
+          text: `r/UCAT Discord\nThink this is a mistake? Please get in touch with a mod!`,
+          icon_url: `https://cdn.discordapp.com/icons/726025878236299356/1af67bb930a71207375b269f069d4ea2.webp?size=240`,
+        },
+      };
+
       try {
         // first send DM
-        await newMember.send("Hi! " + errMsg);
+        embed.description = "Hi!" + originalDescription;
+        await newMember.send({ embeds: [embed] });
       } catch {
         // if DMs are closed
         let logChannel = (await newMember.guild.channels.fetch(
           loadConfig(newMember.guild.id).SPAM_CHANNEL_ID
         )) as TextChannel;
 
-        logChannel.send(`Hi <@${newMember.id}>, ` + errMsg);
+        embed.description = `Hi <@${newMember.id}>!` + originalDescription;
+        await logChannel.send({ embeds: [embed] });
       }
 
       try {
