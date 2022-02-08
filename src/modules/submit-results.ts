@@ -11,6 +11,7 @@ import {
   GuildMember,
 } from "discord.js";
 import { Module, Command, Event } from "../interfaces";
+import { loadConfig } from "../config";
 
 import SparkMD5 from "spark-md5";
 
@@ -22,11 +23,13 @@ enum Region {
 function generatePrefilledLink(user_id: string, region?: Region) {
   // https://docs.google.com/forms/d/e/1FAIpQLSdIZOR746q0qHXBj9ucPARcoq_rAiUWCCD0pKkfw7HBY_4F5g/
   //    viewform?usp=pp_url&entry.475796844=ABC&entry.2013655943=UK
+  // https://docs.google.com/forms/d/e/1FAIpQLSfl9E1i0pCXuwmCGdsvBMoPNo4ReO7pfR1ne4DANctZzCSlWQ/viewform?
+  //  usp=pp_url&entry.888682353=123213213213&entry.1725074781=ANZ
 
   return (
-    "https://docs.google.com/forms/d/e/1FAIpQLSdIZOR746q0qHXBj9ucPARcoq_rAiUWCCD0pKkfw7HBY_4F5g/" +
-    `viewform?usp=pp_url&entry.475796844=${user_id}` +
-    (region ? `&entry.2013655943=${region}` : "")
+    "https://docs.google.com/forms/d/e/1FAIpQLSfl9E1i0pCXuwmCGdsvBMoPNo4ReO7pfR1ne4DANctZzCSlWQ/" +
+    `viewform?usp=pp_url&entry.888682353=${user_id}` +
+    (region ? `&entry.1725074781=${region}` : "")
   );
 }
 
@@ -50,7 +53,6 @@ const submitMockResults: Command = {
     await interaction.reply({
       content: "**Submitting mock exam results...**",
       components: [row],
-      ephemeral: true,
     });
   },
 };
@@ -81,10 +83,10 @@ const interactionChangedEvent: Event = {
     const roleIDs = roles.map((x) => x[0].toString());
 
     let region: Region | undefined = undefined;
-    const ROLE_IDS = (process as any).ROLE_IDS as unknown as {
-      [key: string]: string[];
-    };
+
+    const ROLE_IDS = loadConfig().ROLE_IDS;
     for (let role of roleIDs) {
+      // @ts-ignore
       if (ROLE_IDS.UK.includes(role)) {
         // if ANZ role has already been detected, preference it
         if (region) {
@@ -92,6 +94,7 @@ const interactionChangedEvent: Event = {
         }
 
         region = Region.UK;
+        // @ts-ignore
       } else if (ROLE_IDS.ANZ.includes(role)) {
         region = Region.ANZ;
       }
@@ -100,28 +103,49 @@ const interactionChangedEvent: Event = {
     const interaction = genericInteraction as SelectMenuInteraction;
     const provider: string = interaction.values[0];
 
-    const selectRow = new MessageActionRow().addComponents(
-      new MessageSelectMenu()
-        .setCustomId("submit-provider")
-        .setPlaceholder("Choose a provider...")
-        .addOptions(
-          ["Medify", "Medentry", "Official Mocks"].map((x) => {
-            return { label: x, value: x, default: provider == x };
-          })
-        )
-    );
-    const URLRow = new MessageActionRow().addComponents(
-      new MessageButton()
-        .setURL(generatePrefilledLink(userID, region))
-        .setStyle("LINK")
-        .setLabel(`Link to submit ${provider} results`)
-        .setEmoji("📎")
-    );
+    if (provider == "Medify") {
+      const selectRow = new MessageActionRow().addComponents(
+        new MessageSelectMenu()
+          .setCustomId("submit-provider")
+          .setPlaceholder("Choose a provider...")
+          // .addOptions(
+          //   ["Medify", "Medentry", "Official Mocks"].map((x) => {
+          //     return { label: x, value: x, default: provider == x };
+          //   })
+          // )
+          .setDisabled(true)
+          .addOptions([{ label: provider, value: provider, default: true }])
+      );
 
-    await interaction.update({
-      content: "**Submitting mock exam results...**",
-      components: [selectRow, URLRow],
-    });
+      const URLRow = new MessageActionRow().addComponents(
+        new MessageButton()
+          .setURL(generatePrefilledLink(userID, region))
+          .setStyle("LINK")
+          .setLabel(`Link to submit ${provider} results`)
+          .setEmoji("📎")
+      );
+
+      const spreadsheetRow = new MessageActionRow().addComponents(
+        new MessageButton()
+          .setURL(
+            "https://docs.google.com/spreadsheets/d/1j0P0tINr6mqvlL3qKQ6OJHYKPYLqwtNA50uNgSe8E6c/edit#gid=1109312239"
+          )
+          .setStyle("LINK")
+          .setLabel(`Results spreadsheet`)
+          .setEmoji("✏️")
+      );
+
+      await interaction.reply({
+        content: "**Submitting mock exam results...**",
+        components: [selectRow, URLRow, spreadsheetRow],
+        ephemeral: true,
+      });
+    } else {
+      await interaction.reply({
+        content: "Only the spreadsheet for Medify is ready at the moment :(",
+        ephemeral: true,
+      });
+    }
   },
 };
 
