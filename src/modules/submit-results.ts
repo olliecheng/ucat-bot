@@ -34,9 +34,8 @@ function generatePrefilledLink(user_id: string, region?: Region) {
 }
 
 const submitMockResults: Command = {
-  name: "submit-mock-results",
-  description:
-    "Submit your mock results to the database to gauge your performance.",
+  name: "mocks",
+  description: "Submit or view mock results.",
 
   handler: async (client, interaction) => {
     const row = new MessageActionRow().addComponents(
