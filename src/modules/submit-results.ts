@@ -82,21 +82,23 @@ const interactionChangedEvent: Event = {
     const roleIDs = roles.map((x) => x[0].toString());
 
     let region: Region | undefined = undefined;
-
     const ROLE_IDS = loadConfig().ROLE_IDS;
-    for (let role of roleIDs) {
-      // @ts-ignore
-      if (ROLE_IDS.UK.includes(role)) {
-        // if ANZ role has already been detected, preference it
-        if (region) {
-          continue;
-        }
 
-        region = Region.UK;
+    if (
+      rolesManager.cache.find((r) => {
         // @ts-ignore
-      } else if (ROLE_IDS.ANZ.includes(role)) {
-        region = Region.ANZ;
-      }
+        return ROLE_IDS.UK.includes(r.id);
+      })
+    ) {
+      region = Region.UK;
+    }
+    if (
+      rolesManager.cache.find((r) => {
+        // @ts-ignore
+        return ROLE_IDS.ANZ.includes(r.id);
+      })
+    ) {
+      region = Region.ANZ;
     }
 
     const interaction = genericInteraction as SelectMenuInteraction;
