@@ -20,9 +20,6 @@ import { getServers } from "./config";
       new SlashCommandBuilder()
         .setName(name)
         .setDescription(command.description)
-        .setDefaultPermission(
-          command.default_permission || command.default_permission === undefined
-        )
     )
     .map((command) => command.toJSON());
 

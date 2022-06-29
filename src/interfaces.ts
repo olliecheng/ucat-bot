@@ -17,7 +17,6 @@ export interface Command {
   name: string; // command name
   description: string;
   category?: string;
-  default_permission?: boolean;
   prevent_automatic_registration?: boolean;
   options?: Array<ApplicationCommandOptionData>;
   handler: CommandHandler;
