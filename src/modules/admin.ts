@@ -31,7 +31,6 @@ Object.assign(CurrentState, DefaultCurrentState);
 const createRoleSelectorCommand: Command = {
   name: "role-picker",
   description: "Create the role picker selector message.",
-  default_permission: false,
   prevent_automatic_registration: true,
   options: [
     {
@@ -80,7 +79,6 @@ const createRoleSelectorCommand: Command = {
 const cancelRoleSelectorCommand: Command = {
   name: "cancel",
   description: "Cancel role selector creation",
-  default_permission: false,
   handler: async (client, interaction) => {
     await interaction.reply({
       content: "Cancelled. All your selections have been cleared.",
@@ -101,7 +99,6 @@ const cancelRoleSelectorCommand: Command = {
 const addRoleToSelectionCommand: Command = {
   name: "add-role",
   description: "Add a role to the role selector",
-  default_permission: false,
   options: [
     {
       type: "ROLE",
@@ -187,7 +184,6 @@ const addRoleToSelectionCommand: Command = {
 const addDividerCommand: Command = {
   name: "add-divider",
   description: "Add a divider to the list of roles.",
-  default_permission: false,
   handler: async (client, interaction) => {
     CurrentState.roles = [
       ...CurrentState.roles,
@@ -200,7 +196,6 @@ const addDividerCommand: Command = {
 const finaliseRoleSelectorCommand: Command = {
   name: "finish",
   description: "Finish the role selector creation",
-  default_permission: false,
   handler: async (client, interaction) => {
     let confirmEmbed = new MessageEmbed().setTitle(
       "🎉 The prompt has been created."
@@ -380,7 +375,6 @@ async function updateAdminSlashCommand(
     let payload = {
       name: "admin",
       description: "Administrator only commands",
-      defaultPermission: false,
       options: commands.map((commandHandler: Command) => {
         return {
           name: commandHandler.name,
@@ -398,16 +392,6 @@ async function updateAdminSlashCommand(
       command = await guild?.commands.edit(command.id, payload);
     }
     command = await guild?.commands.create(payload);
-
-    const permissions = loadConfig(guildID).MODERATOR_ROLE_IDS.map((roleID) => {
-      return {
-        id: roleID,
-        type: "ROLE",
-        permission: true,
-      };
-    });
-    // @ts-ignore // why? wtf
-    await command?.permissions.set({ permissions });
   }
 }
 
