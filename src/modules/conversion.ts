@@ -183,6 +183,12 @@ const interactionChangedEvent: Event = {
       const QR = interaction.fields.getTextInputValue("QR");
       const AR = interaction.fields.getTextInputValue("AR");
 
+      let [syll_correct, syll_partcorrect] = [
+        ...DMsyl.split("\n"),
+        "0",
+        "0",
+      ].map((x) => parseInt(x));
+
       await interaction.reply({
         content: `Your score is: \`${calc(
           VR,
@@ -190,7 +196,17 @@ const interactionChangedEvent: Event = {
           DMmcq,
           QR,
           AR
-        )}\`.\n\n_Consider using \`/mocks\` to record your results!_`,
+        )}\`, for the following results:
+
+VR: ${VR}/44,
+DM:
+    ${syll_correct}/9 fully correct syllogisms
+    ${syll_partcorrect}/9 partially correct syllogisms
+    ${DMmcq}/20 multiple choice questions
+QR: ${QR}/36
+AR: ${AR}/50
+
+_Consider using \`/mocks\` to record your results!_`,
         ephemeral: true,
       });
     } else if (
