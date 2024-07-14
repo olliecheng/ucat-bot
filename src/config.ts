@@ -24,7 +24,10 @@ export function getServers(): string[] {
   if (process.env.TEST_SERVER) {
     return [process.env.TEST_SERVER];
   }
-  let servers = Object.keys(config).filter((x) => x != "default");
+  let servers = [
+    ...Object.keys(config).filter((x) => !["default", "extra"].includes(x)),
+    config.extra,
+  ];
   console.log("Loaded servers:", servers);
   return servers;
 }

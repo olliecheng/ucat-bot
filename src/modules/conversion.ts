@@ -190,13 +190,13 @@ const interactionChangedEvent: Event = {
       ].map((x) => parseInt(x));
 
       await interaction.reply({
-        content: `Your score is: \`${calc(
+        content: `**Your score is: \`${calc(
           VR,
           DMsyl,
           DMmcq,
           QR,
           AR
-        )}\`, for the following results:
+        )}\`, for the following results:**
 
 VR: ${VR}/44,
 DM:
